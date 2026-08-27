@@ -1,0 +1,105 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-cream: #fff9f2;
+  --color-pink: #ffc2d1;
+  --color-pink-deep: #c25a7c;
+  --color-sky: #bee3f8;
+  --color-sky-deep: #3e7ca6;
+  --color-mint: #c6f1d6;
+  --color-mint-deep: #3e8c63;
+  --color-lemon: #ffe8a3;
+  --color-lemon-deep: #b08a20;
+  --color-lilac: #e2d6ff;
+  --color-lilac-deep: #6d55b0;
+  --color-peach: #ffd8be;
+  --color-ink: #4a4038;
+  --color-ink-soft: #8a7f74;
+
+  --font-hand: var(--font-mali), 'Comic Sans MS', cursive;
+  --font-title: var(--font-itim), var(--font-mali), cursive;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  font-size: 17px;
+}
+
+body {
+  background-color: var(--color-cream);
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(255, 194, 209, 0.35) 0, transparent 34%),
+    radial-gradient(circle at 88% 4%, rgba(190, 227, 248, 0.35) 0, transparent 32%),
+    radial-gradient(circle at 78% 92%, rgba(226, 214, 255, 0.32) 0, transparent 34%),
+    radial-gradient(circle at 8% 88%, rgba(198, 241, 214, 0.32) 0, transparent 30%);
+  background-attachment: fixed;
+  color: var(--color-ink);
+  font-family: var(--font-hand);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-title);
+}
+
+/* ปุ่มพาสเทลกลม ๆ */
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 font-semibold
+         transition-transform duration-150 active:scale-95 disabled:opacity-50;
+  box-shadow: 0 3px 0 rgba(74, 64, 56, 0.12);
+}
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.card {
+  @apply rounded-3xl bg-white/85 p-5 backdrop-blur;
+  box-shadow: 0 8px 24px rgba(74, 64, 56, 0.09);
+}
+
+.field {
+  @apply w-full rounded-2xl border-2 border-[#f0e4da] bg-white px-4 py-2.5 outline-none transition-colors;
+  color: var(--color-ink);
+  font-family: var(--font-hand);
+}
+.field:focus {
+  border-color: var(--color-pink);
+  box-shadow: 0 0 0 4px rgba(255, 194, 209, 0.3);
+}
+
+.label {
+  @apply mb-1.5 block text-[0.95rem] font-semibold;
+  color: var(--color-ink-soft);
+}
+
+/* scrollbar น่ารัก ๆ */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-pink);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-pop {
+  animation: pop-in 0.22s ease-out both;
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-2deg); }
+  50%      { transform: rotate(2deg); }
+}
+.animate-wiggle {
+  animation: wiggle 1.6s ease-in-out infinite;
+}
