@@ -39,6 +39,22 @@ create index if not exists attachments_event_idx
   on public.attachments (event_id);
 
 -- ============================================================
+--  สิทธิ์ระดับตาราง (GRANT)
+--
+--  จำเป็นต้องมี แยกจาก RLS คนละชั้นกัน:
+--    GRANT = role นี้แตะตารางนี้ได้ไหม   -> ไม่มีจะได้ permission denied for table
+--    RLS   = แตะได้แล้วเห็น/แก้แถวไหนบ้าง -> ไม่ผ่านจะได้ violates row-level security policy
+--  ปกติ Supabase ตั้ง default privileges ไว้ให้ แต่ไม่ได้ผลทุกโปรเจกต์
+--  จึงสั่งตรง ๆ ไว้เลยเพื่อความแน่นอน
+--
+--  ให้เฉพาะ authenticated เท่านั้น — anon (ยังไม่ล็อกอิน) ไม่ต้องแตะตารางนี้
+-- ============================================================
+
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on public.events      to authenticated;
+grant select, insert, update, delete on public.attachments to authenticated;
+
+-- ============================================================
 --  Row Level Security — แต่ละคนเห็นเฉพาะข้อมูลของตัวเอง
 -- ============================================================
 

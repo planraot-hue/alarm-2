@@ -162,8 +162,12 @@ export function describeDbError(err: unknown): string {
   if (lower.includes('failed to fetch') || lower.includes('networkerror')) {
     return 'ต่อกับ Supabase ไม่ได้ — เช็คอินเทอร์เน็ตและค่า NEXT_PUBLIC_SUPABASE_URL'
   }
-  if (code === '42501' || lower.includes('row-level security') || lower.includes('permission denied')) {
-    return `RLS ปฏิเสธคำสั่งนี้ — เช็คว่า policy ถูกสร้างครบตอนรัน schema.sql (${msg})`
+  // สองอันนี้รหัสเดียวกัน (42501) แต่คนละสาเหตุ ต้องแยกให้ชัด ไม่งั้นไล่แก้ผิดจุด
+  if (lower.includes('permission denied')) {
+    return `role authenticated ยังไม่ได้รับสิทธิ์บนตาราง — รัน schema.sql เวอร์ชันล่าสุดที่มีส่วน grant (${msg})`
+  }
+  if (code === '42501' || lower.includes('row-level security')) {
+    return `RLS ปฏิเสธแถวนี้ — เช็คว่า policy ถูกสร้างครบตอนรัน schema.sql (${msg})`
   }
   return `${msg}${code ? ` (code ${code})` : ''}`
 }
