@@ -1,6 +1,7 @@
 # 🗓️ สมุดนัดน่ารัก — เว็บแจ้งเตือนนัดสำคัญ
 
 เว็บจัดการนัดหมายส่วนตัว ธีมพาสเทลฟอนต์ลายมือ ทำงานจบในหน้าเดียว
+ข้อมูลเก็บบน **Supabase** เข้าใช้ได้จากทุกเครื่อง
 สร้างตามข้อกำหนดใน [`alarm2.txt`](alarm2.txt)
 
 ## ฟีเจอร์
@@ -12,52 +13,74 @@
 | 🎨 ไอคอนตามประเภท | ประชุม 🤝 / หมอ 🩺 / เรียน 📚 / เดินทาง ✈️ / งานเลี้ยง 🎉 / งาน 💼 / อื่น ๆ 📌 |
 | 🔔 แจ้งเตือน | ล่วงหน้า **3 วัน · 1 วัน · 1 ชั่วโมง** ก่อนถึงนัด (เลือกเปิด/ปิดรายนัดได้) |
 | 🗺️ แผนที่ | ปุ่มเปิด Google Maps จากชื่อสถานที่ที่กรอกไว้ |
-| 📎 ไฟล์แนบ | อัปโหลดเอกสารและรูปภาพ พร้อมพรีวิวรูปย่อ (สูงสุด 10MB ต่อไฟล์) |
+| 📎 ไฟล์แนบ | อัปโหลดเอกสารและรูปภาพขึ้น Supabase Storage พร้อมพรีวิวรูปย่อ (สูงสุด 10MB ต่อไฟล์) |
 | 📌 สรุปรายวัน | รวมนัดทั้งหมดของวันที่เลือก เรียงตามเวลา พร้อมนับจำนวน |
 | ✈️ จองตั๋วเครื่องบิน | ลิงก์ไป Google Flights / Traveloka / Skyscanner / Thai Airways |
-| 🔑 ล็อกอิน | รหัสตายตัว ไม่ใช้ Database |
+| 🔑 ล็อกอิน | Supabase Auth แบบอีเมล + รหัสผ่าน |
 | 💾 สำรองข้อมูล | Export / Import JSON |
 
-## รหัสผ่าน
+---
 
-```
-Username: admin
-Password: raot1234
-```
-
-## วิธีรัน
+## ติดตั้ง
 
 ต้องมี [Node.js](https://nodejs.org) 20 ขึ้นไป
 
+### 1. ติดตั้ง dependency
+
 ```bash
 npm install
+```
+
+### 2. ตั้งค่าฐานข้อมูลบน Supabase
+
+1. สร้างโปรเจกต์ที่ [supabase.com](https://supabase.com)
+2. เปิด **SQL Editor → New query** วางเนื้อหาไฟล์ [`supabase/schema.sql`](supabase/schema.sql) ทั้งไฟล์แล้วกด **Run**
+   สคริปต์นี้จะสร้างให้ครบ: ตาราง `events` + `attachments`, RLS policy, และ Storage bucket `attachments`
+
+### 3. สร้างบัญชีผู้ใช้
+
+เว็บนี้**ไม่มีหน้าสมัครสมาชิก** — สร้างบัญชีจากฝั่ง Supabase:
+
+**Authentication → Users → Add user** ใส่อีเมลกับรหัสผ่าน
+แนะนำให้ติ๊ก **Auto Confirm User** ไม่งั้นจะเข้าไม่ได้จนกว่าจะยืนยันอีเมล
+
+### 4. ใส่ค่า environment variable
+
+คัดลอก [`.env.local.example`](.env.local.example) เป็น `.env.local` แล้วเติมค่าจริง
+(หาได้ที่ **Project Settings → API**)
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
+```
+
+### 5. รัน
+
+```bash
 npm run dev      # เปิด http://localhost:3000
 ```
 
-สร้าง production build:
+ถ้ายังไม่ได้ตั้งค่า env เว็บจะขึ้นหน้าบอกวิธีตั้งค่าให้แทนหน้าจอเปล่า
 
-```bash
-npm run build
-npm run start
-```
+---
 
 ## Deploy ขึ้น Vercel
 
 1. push โปรเจกต์นี้ขึ้น GitHub
 2. เข้า [vercel.com](https://vercel.com) → **Add New → Project** → เลือก repo นี้
-3. กด Deploy ได้เลย **ไม่ต้องตั้งค่า environment variable ใด ๆ**
-
-หรือ deploy จากเครื่องตรง ๆ ด้วย `npx vercel`
+3. ใน **Environment Variables** ใส่ `NEXT_PUBLIC_SUPABASE_URL` และ `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+4. กด Deploy
 
 ## โครงสร้างโปรเจกต์
 
 ```
 app/
   layout.tsx        ฟอนต์ Mali + Itim (subset ภาษาไทย), metadata
-  page.tsx          หน้าเดียวจบ — ล็อกอิน, ปฏิทิน, สรุปรายวัน, ฟอร์ม
+  page.tsx          หน้าเดียวจบ — session, ปฏิทิน, สรุปรายวัน, ฟอร์ม
   globals.css       ธีมพาสเทล (Tailwind CSS v4)
 components/
-  LoginGate.tsx     ฟอร์มล็อกอิน
+  AuthGate.tsx      ฟอร์มล็อกอินด้วย Supabase Auth
+  ConfigNotice.tsx  หน้าบอกวิธีตั้งค่าเมื่อยังไม่มี env
   CalendarMonth.tsx ปฏิทินรายเดือน (พ.ศ.)
   DaySummary.tsx    สรุปนัดหมายของวันที่เลือก
   EventCard.tsx     การ์ดนัด + ปุ่มแผนที่/ไฟล์แนบ/แก้ไข/ลบ
@@ -67,28 +90,34 @@ components/
   FlightLinks.tsx   ลิงก์จองตั๋วเครื่องบิน
   BackupBar.tsx     Export / Import JSON
 lib/
+  supabase.ts     Supabase client ฝั่งเบราว์เซอร์
+  db.ts           อ่าน/เขียนนัดหมายและไฟล์แนบบน Supabase
+  attachments.ts  อัปโหลด/ดาวน์โหลดไฟล์ผ่าน Supabase Storage
+  storage.ts      localStorage เฉพาะสถานะแจ้งเตือนของเครื่องนี้
   types.ts        โครงสร้างข้อมูลนัดหมาย
   categories.ts   ประเภทกิจกรรม + ไอคอน + สีพาสเทล
   dates.ts        คำนวณปฏิทิน, ช่วงวันหลายวัน, ฟอร์แมตวันที่ไทย
-  storage.ts      อ่าน/เขียนนัดหมายใน localStorage
-  attachments.ts  เก็บไฟล์แนบเป็น Blob ใน IndexedDB
   reminders.ts    คำนวณว่าถึงเวลาต้องเตือนหรือยัง
+supabase/
+  schema.sql      ตาราง + RLS + Storage bucket
 ```
+
+## ความปลอดภัย
+
+- **anon key เปิดเผยได้** — ถูกออกแบบมาให้อยู่ฝั่งเบราว์เซอร์ ความปลอดภัยจริงมาจาก **Row Level Security**
+  ทุกตารางเปิด RLS และทุก policy บังคับ `auth.uid() = user_id` แต่ละบัญชีจึงเห็นเฉพาะนัดหมายของตัวเอง
+- **ห้ามเอา `service_role` key มาใส่ในโปรเจกต์นี้** — คีย์นั้นข้าม RLS ได้ทั้งหมด ต้องอยู่ฝั่งเซิร์ฟเวอร์เท่านั้น
+- ไฟล์แนบอยู่ใน bucket แบบ **private** เปิดดูผ่าน signed URL อายุ 1 ชั่วโมง และ storage policy เช็คว่าโฟลเดอร์ชั้นแรกตรงกับ uid ของคนที่ล็อกอิน
 
 ## ข้อจำกัดที่ควรรู้
 
-โจทย์กำหนดว่า **ไม่ใช้ Database** ทุกอย่างจึงทำงานฝั่งเบราว์เซอร์ล้วน ซึ่งมีผลตามนี้:
-
-- **ข้อมูลอยู่บนเบราว์เซอร์เครื่องที่ใช้เท่านั้น** — นัดหมายเก็บใน `localStorage` ไฟล์แนบเก็บใน `IndexedDB`
-  เปลี่ยนเครื่อง เปลี่ยนเบราว์เซอร์ หรือล้าง site data แล้วข้อมูลจะหาย
-  → ใช้ปุ่ม **Export JSON** สำรองไว้เป็นระยะ (หมายเหตุ: ไฟล์แนบไม่รวมอยู่ในไฟล์สำรอง เพราะเป็น Blob ขนาดใหญ่)
-- **ล็อกอินไม่ใช่ระบบความปลอดภัยจริง** — รหัสอยู่ในโค้ดฝั่ง client ที่ใครเปิด DevTools ก็เห็นได้
-  เป็นแค่ประตูหน้าตามที่โจทย์ขอ อย่าใช้เก็บข้อมูลที่เป็นความลับจริงจัง
 - **แจ้งเตือนทำงานเมื่อเปิดเว็บค้างไว้** — ปิดแท็บแล้วจะไม่มีแจ้งเตือน
-  (การแจ้งเตือนแบบปิดเว็บแล้วยังเด้ง ต้องมี Service Worker + push server + ฐานข้อมูลเก็บ subscription)
+  (การแจ้งเตือนแบบปิดเว็บแล้วยังเด้ง ต้องมี Service Worker + push server เพิ่ม)
   ครั้งแรกต้องกดปุ่ม **🔔 เปิดการแจ้งเตือนบนเครื่อง** เพื่ออนุญาต ถ้าไม่อนุญาตก็ยังมีแบนเนอร์เตือนในหน้าเว็บให้
+- **สถานะ "เตือนไปแล้ว" เก็บแยกรายเครื่อง** โดยตั้งใจ ถ้าเก็บรวมบนเซิร์ฟเวอร์ เปิดเว็บอีกเครื่องจะไม่ได้รับเตือนเลย
+- **Import JSON จะไม่พาไฟล์แนบมาด้วย** เพราะตัวไฟล์อยู่ใน Storage ของบัญชีเดิม ระบบจะนำเข้าเฉพาะตัวนัดหมาย
 
 ## Tech stack
 
-Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4
-ฟอนต์ Mali + Itim จาก Google Fonts (subset ภาษาไทย) · ไม่มี dependency เสริมอื่น
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Supabase (Auth + Postgres + Storage)
+ฟอนต์ Mali + Itim จาก Google Fonts (subset ภาษาไทย)

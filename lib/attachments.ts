@@ -1,63 +1,13 @@
 /**
- * เก็บไฟล์แนบเป็น Blob ใน IndexedDB
- * (localStorage เก็บได้แค่ string และมีเพดานราว 5MB จึงไม่เหมาะกับไฟล์)
+ * ไฟล์แนบเก็บใน Supabase Storage bucket 'attachments' (private)
+ * path = {user_id}/{attachment_id} เพื่อให้ RLS policy เช็คเจ้าของจากโฟลเดอร์ชั้นแรกได้
  */
+import { supabase } from './supabase'
+import { type Attachment, newId } from './types'
 
-const DB_NAME = 'alarm2'
-const DB_VERSION = 1
-const STORE = 'attachments'
+const BUCKET = 'attachments'
 
 export const MAX_FILE_BYTES = 10 * 1024 * 1024 // 10MB ต่อไฟล์
-
-let dbPromise: Promise<IDBDatabase> | null = null
-
-function openDB(): Promise<IDBDatabase> {
-  if (typeof indexedDB === 'undefined') {
-    return Promise.reject(new Error('เบราว์เซอร์นี้ไม่รองรับ IndexedDB'))
-  }
-  if (!dbPromise) {
-    dbPromise = new Promise((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, DB_VERSION)
-      req.onupgradeneeded = () => {
-        const db = req.result
-        if (!db.objectStoreNames.contains(STORE)) {
-          db.createObjectStore(STORE)
-        }
-      }
-      req.onsuccess = () => resolve(req.result)
-      req.onerror = () => reject(req.error)
-    })
-  }
-  return dbPromise
-}
-
-function tx<T>(mode: IDBTransactionMode, run: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
-  return openDB().then(
-    (db) =>
-      new Promise<T>((resolve, reject) => {
-        const transaction = db.transaction(STORE, mode)
-        const req = run(transaction.objectStore(STORE))
-        req.onsuccess = () => resolve(req.result)
-        req.onerror = () => reject(req.error)
-      })
-  )
-}
-
-export function putFile(id: string, file: Blob): Promise<void> {
-  return tx('readwrite', (store) => store.put(file, id)).then(() => undefined)
-}
-
-export function getFile(id: string): Promise<Blob | undefined> {
-  return tx<Blob | undefined>('readonly', (store) => store.get(id) as IDBRequest<Blob | undefined>)
-}
-
-export function deleteFile(id: string): Promise<void> {
-  return tx('readwrite', (store) => store.delete(id)).then(() => undefined)
-}
-
-export function deleteFiles(ids: string[]): Promise<void> {
-  return Promise.all(ids.map((id) => deleteFile(id).catch(() => undefined))).then(() => undefined)
-}
 
 export function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
@@ -65,17 +15,48 @@ export function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-/** เปิด/ดาวน์โหลดไฟล์แนบจาก IndexedDB */
-export async function downloadAttachment(id: string, name: string): Promise<void> {
-  const blob = await getFile(id)
-  if (!blob) {
-    alert('ไม่พบไฟล์นี้แล้ว (อาจถูกล้างข้อมูลเบราว์เซอร์ไป)')
+/** อัปโหลดไฟล์ขึ้น Storage แล้วคืน metadata ไว้ผูกกับนัดหมาย */
+export async function uploadAttachment(file: File, userId: string): Promise<Attachment> {
+  const id = newId()
+  const storagePath = `${userId}/${id}`
+
+  const { error } = await supabase.storage.from(BUCKET).upload(storagePath, file, {
+    contentType: file.type || 'application/octet-stream',
+    upsert: false,
+  })
+  if (error) throw error
+
+  return { id, name: file.name, type: file.type, size: file.size, storagePath }
+}
+
+/** ลบไฟล์ออกจาก Storage (แถว metadata ลบแยกผ่าน lib/db.ts) */
+export async function removeStorageFiles(paths: string[]): Promise<void> {
+  if (paths.length === 0) return
+  const { error } = await supabase.storage.from(BUCKET).remove(paths)
+  if (error) console.error('ลบไฟล์แนบไม่สำเร็จ', error)
+}
+
+/** ลิงก์ชั่วคราวสำหรับดู/ดาวน์โหลดไฟล์ใน bucket แบบ private */
+export async function getSignedUrl(storagePath: string, expiresInSec = 3600): Promise<string | null> {
+  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(storagePath, expiresInSec)
+  if (error) {
+    console.error('สร้างลิงก์ไฟล์ไม่สำเร็จ', error)
+    return null
+  }
+  return data?.signedUrl ?? null
+}
+
+/** ดาวน์โหลดไฟล์แนบลงเครื่อง */
+export async function downloadAttachment(att: Attachment): Promise<void> {
+  const { data, error } = await supabase.storage.from(BUCKET).download(att.storagePath)
+  if (error || !data) {
+    alert('เปิดไฟล์ไม่สำเร็จ ไฟล์อาจถูกลบไปแล้ว')
     return
   }
-  const url = URL.createObjectURL(blob)
+  const url = URL.createObjectURL(data)
   const a = document.createElement('a')
   a.href = url
-  a.download = name
+  a.download = att.name
   document.body.appendChild(a)
   a.click()
   a.remove()

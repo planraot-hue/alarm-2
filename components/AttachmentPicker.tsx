@@ -1,41 +1,42 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { MAX_FILE_BYTES, deleteFile, formatSize, getFile, putFile } from '@/lib/attachments'
-import { type Attachment, newId } from '@/lib/types'
+import {
+  MAX_FILE_BYTES,
+  formatSize,
+  getSignedUrl,
+  removeStorageFiles,
+  uploadAttachment,
+} from '@/lib/attachments'
+import type { Attachment } from '@/lib/types'
 
 interface Props {
   value: Attachment[]
+  userId: string
   onChange: (next: Attachment[]) => void
 }
 
-/** พรีวิวรูปย่อจาก IndexedDB */
-function Thumb({ id }: { id: string }) {
+/** พรีวิวรูปย่อผ่าน signed URL ของ bucket แบบ private */
+function Thumb({ att }: { att: Attachment }) {
   const [url, setUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    let objectUrl: string | null = null
     let cancelled = false
-
-    getFile(id).then((blob) => {
-      if (cancelled || !blob) return
-      objectUrl = URL.createObjectURL(blob)
-      setUrl(objectUrl)
+    getSignedUrl(att.storagePath).then((u) => {
+      if (!cancelled) setUrl(u)
     })
-
     return () => {
       cancelled = true
-      if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [id])
+  }, [att.storagePath])
 
   if (!url) return <span className="text-2xl">🖼️</span>
-  // ใช้ <img> ตรง ๆ เพราะเป็น blob: URL ที่ next/image ไม่รองรับ
+  // ใช้ <img> ตรง ๆ เพราะเป็น signed URL ชั่วคราวที่ next/image ปรับขนาดให้ไม่ได้
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={url} alt="" className="h-11 w-11 rounded-xl object-cover" />
 }
 
-export default function AttachmentPicker({ value, onChange }: Props) {
+export default function AttachmentPicker({ value, userId, onChange }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -51,13 +52,11 @@ export default function AttachmentPicker({ value, onChange }: Props) {
         setError(`"${file.name}" ใหญ่เกิน ${formatSize(MAX_FILE_BYTES)} เลยข้ามไปนะ`)
         continue
       }
-      const id = newId()
       try {
-        await putFile(id, file)
-        added.push({ id, name: file.name, type: file.type, size: file.size })
+        added.push(await uploadAttachment(file, userId))
       } catch (err) {
         console.error(err)
-        setError('บันทึกไฟล์ไม่สำเร็จ พื้นที่เบราว์เซอร์อาจเต็ม')
+        setError(`อัปโหลด "${file.name}" ไม่สำเร็จ ลองใหม่อีกครั้งนะ`)
       }
     }
 
@@ -67,7 +66,7 @@ export default function AttachmentPicker({ value, onChange }: Props) {
   }
 
   async function remove(att: Attachment) {
-    await deleteFile(att.id).catch(() => undefined)
+    await removeStorageFiles([att.storagePath])
     onChange(value.filter((a) => a.id !== att.id))
   }
 
@@ -89,7 +88,7 @@ export default function AttachmentPicker({ value, onChange }: Props) {
         disabled={busy}
         onClick={() => inputRef.current?.click()}
       >
-        {busy ? 'กำลังบันทึก…' : '📎 แนบเอกสาร / รูปภาพ'}
+        {busy ? 'กำลังอัปโหลด…' : '📎 แนบเอกสาร / รูปภาพ'}
       </button>
 
       {error && (
@@ -101,12 +100,9 @@ export default function AttachmentPicker({ value, onChange }: Props) {
       {value.length > 0 && (
         <ul className="mt-3 space-y-2">
           {value.map((att) => (
-            <li
-              key={att.id}
-              className="flex items-center gap-3 rounded-2xl bg-white/80 px-3 py-2"
-            >
+            <li key={att.id} className="flex items-center gap-3 rounded-2xl bg-white/80 px-3 py-2">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center">
-                {att.type.startsWith('image/') ? <Thumb id={att.id} /> : <span className="text-2xl">📄</span>}
+                {att.type.startsWith('image/') ? <Thumb att={att} /> : <span className="text-2xl">📄</span>}
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[0.95rem] font-semibold">{att.name}</span>

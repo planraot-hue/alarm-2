@@ -17,11 +17,12 @@ interface Props {
   /** นัดที่กำลังแก้ไข — ถ้า null คือสร้างใหม่ */
   editing: AppEvent | null
   defaultDate: string
+  userId: string
   onSave: (ev: AppEvent) => void
   onClose: () => void
 }
 
-export default function EventForm({ editing, defaultDate, onSave, onClose }: Props) {
+export default function EventForm({ editing, defaultDate, userId, onSave, onClose }: Props) {
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState<CategoryId>('meeting')
   const [startDate, setStartDate] = useState(defaultDate)
@@ -276,7 +277,7 @@ export default function EventForm({ editing, defaultDate, onSave, onClose }: Pro
 
         <div className="mb-5">
           <span className="label">ไฟล์แนบ</span>
-          <AttachmentPicker value={attachments} onChange={setAttachments} />
+          <AttachmentPicker value={attachments} userId={userId} onChange={setAttachments} />
         </div>
 
         {error && (

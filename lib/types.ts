@@ -22,6 +22,8 @@ export interface Attachment {
   name: string
   type: string
   size: number
+  /** path ของไฟล์ใน Supabase Storage bucket 'attachments' — {user_id}/{attachment_id} */
+  storagePath: string
 }
 
 export interface AppEvent {

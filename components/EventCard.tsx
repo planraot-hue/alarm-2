@@ -75,7 +75,7 @@ export default function EventCard({ event, now, onEdit, onDelete }: Props) {
               {event.attachments.map((att) => (
                 <button
                   key={att.id}
-                  onClick={() => downloadAttachment(att.id, att.name)}
+                  onClick={() => downloadAttachment(att)}
                   title={`เปิด ${att.name} (${formatSize(att.size)})`}
                   className="max-w-[14rem] truncate rounded-full px-3 py-1 text-[0.82rem] font-semibold transition-transform hover:-translate-y-0.5"
                   style={{ background: 'var(--color-lilac)', color: 'var(--color-lilac-deep)' }}
