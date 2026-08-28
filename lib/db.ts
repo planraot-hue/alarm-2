@@ -1,5 +1,14 @@
 import { supabase } from './supabase'
-import { DEFAULT_REMINDERS, type AppEvent, type Attachment, type ReminderOffset } from './types'
+import {
+  DEFAULT_REMINDERS,
+  type AppEvent,
+  type Attachment,
+  type Habit,
+  type Mood,
+  type ReminderOffset,
+  type StickyNote,
+  habitLogKey,
+} from './types'
 
 /** แถวในตาราง events (snake_case ตาม Postgres) */
 interface EventRow {
@@ -170,4 +179,157 @@ export function describeDbError(err: unknown): string {
     return `RLS ปฏิเสธแถวนี้ — เช็คว่า policy ถูกสร้างครบตอนรัน schema.sql (${msg})`
   }
   return `${msg}${code ? ` (code ${code})` : ''}`
+}
+
+/* ============================================================
+   Mood Tracker
+   ============================================================ */
+
+interface MoodRow {
+  day: string
+  emoji: string
+  note: string | null
+}
+
+export async function fetchMoods(): Promise<Mood[]> {
+  const { data, error } = await supabase.from('moods').select('day, emoji, note')
+  if (error) throw error
+  return ((data ?? []) as MoodRow[]).map((r) => ({
+    day: r.day,
+    emoji: r.emoji,
+    note: r.note ?? undefined,
+  }))
+}
+
+/** บันทึกอารมณ์ของวัน — primary key (user_id, day) ทำให้ upsert ทับของเดิมได้เลย */
+export async function setMood(mood: Mood, userId: string): Promise<void> {
+  const { error } = await supabase.from('moods').upsert({
+    user_id: userId,
+    day: mood.day,
+    emoji: mood.emoji,
+    note: mood.note ?? null,
+  })
+  if (error) throw error
+}
+
+export async function clearMood(day: string, userId: string): Promise<void> {
+  const { error } = await supabase.from('moods').delete().eq('user_id', userId).eq('day', day)
+  if (error) throw error
+}
+
+/* ============================================================
+   Habit Tracker
+   ============================================================ */
+
+interface HabitRow {
+  id: string
+  name: string
+  icon: string
+  color: string
+  sort_order: number
+}
+
+export async function fetchHabits(): Promise<Habit[]> {
+  const { data, error } = await supabase
+    .from('habits')
+    .select('id, name, icon, color, sort_order')
+    .order('sort_order', { ascending: true })
+  if (error) throw error
+  return ((data ?? []) as HabitRow[]).map((r) => ({
+    id: r.id,
+    name: r.name,
+    icon: r.icon,
+    color: r.color as Habit['color'],
+    sortOrder: r.sort_order,
+  }))
+}
+
+export async function upsertHabit(habit: Habit, userId: string): Promise<void> {
+  const { error } = await supabase.from('habits').upsert({
+    id: habit.id,
+    user_id: userId,
+    name: habit.name,
+    icon: habit.icon,
+    color: habit.color,
+    sort_order: habit.sortOrder,
+  })
+  if (error) throw error
+}
+
+/** ลบนิสัย — habit_logs หายตามด้วย ON DELETE CASCADE */
+export async function deleteHabit(id: string): Promise<void> {
+  const { error } = await supabase.from('habits').delete().eq('id', id)
+  if (error) throw error
+}
+
+/** คืนคีย์ 'habitId:day' ของวันที่ติ๊กแล้วทั้งหมด */
+export async function fetchHabitLogs(): Promise<string[]> {
+  const { data, error } = await supabase.from('habit_logs').select('habit_id, day')
+  if (error) throw error
+  return ((data ?? []) as { habit_id: string; day: string }[]).map((r) =>
+    habitLogKey(r.habit_id, r.day)
+  )
+}
+
+/** ติ๊ก = เพิ่มแถว, ติ๊กออก = ลบแถว */
+export async function setHabitLog(
+  habitId: string,
+  day: string,
+  done: boolean,
+  userId: string
+): Promise<void> {
+  if (done) {
+    const { error } = await supabase
+      .from('habit_logs')
+      .upsert({ habit_id: habitId, user_id: userId, day })
+    if (error) throw error
+  } else {
+    const { error } = await supabase
+      .from('habit_logs')
+      .delete()
+      .eq('habit_id', habitId)
+      .eq('day', day)
+    if (error) throw error
+  }
+}
+
+/* ============================================================
+   Sticky Notes
+   ============================================================ */
+
+interface NoteRow {
+  id: string
+  body: string
+  color: string
+  sort_order: number
+}
+
+export async function fetchNotes(): Promise<StickyNote[]> {
+  const { data, error } = await supabase
+    .from('notes')
+    .select('id, body, color, sort_order')
+    .order('sort_order', { ascending: true })
+  if (error) throw error
+  return ((data ?? []) as NoteRow[]).map((r) => ({
+    id: r.id,
+    body: r.body,
+    color: r.color as StickyNote['color'],
+    sortOrder: r.sort_order,
+  }))
+}
+
+export async function upsertNote(note: StickyNote, userId: string): Promise<void> {
+  const { error } = await supabase.from('notes').upsert({
+    id: note.id,
+    user_id: userId,
+    body: note.body,
+    color: note.color,
+    sort_order: note.sortOrder,
+  })
+  if (error) throw error
+}
+
+export async function deleteNote(id: string): Promise<void> {
+  const { error } = await supabase.from('notes').delete().eq('id', id)
+  if (error) throw error
 }

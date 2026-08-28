@@ -2,12 +2,13 @@
 
 import { getCategory } from '@/lib/categories'
 import { MONTHS_TH, WEEKDAYS_TH, eventsOnDate, monthGrid, toKey } from '@/lib/dates'
-import type { AppEvent } from '@/lib/types'
+import type { AppEvent, Mood } from '@/lib/types'
 
 interface Props {
   year: number
   month: number
   events: AppEvent[]
+  moods: Map<string, Mood>
   selectedKey: string
   todayKey: string
   onSelect: (key: string) => void
@@ -18,6 +19,7 @@ export default function CalendarMonth({
   year,
   month,
   events,
+  moods,
   selectedKey,
   todayKey,
   onSelect,
@@ -88,6 +90,7 @@ export default function CalendarMonth({
           const isToday = key === todayKey
           const isSelected = key === selectedKey
           const dayEvents = eventsOnDate(events, key)
+          const mood = moods.get(key)
 
           return (
             <button
@@ -108,8 +111,15 @@ export default function CalendarMonth({
                 opacity: inMonth ? 1 : 0.4,
               }}
             >
-              <span className={`text-[1.05rem] ${isToday || isSelected ? 'font-bold' : ''}`}>
-                {d.getDate()}
+              <span className="flex items-center gap-0.5">
+                <span className={`text-[1.05rem] ${isToday || isSelected ? 'font-bold' : ''}`}>
+                  {d.getDate()}
+                </span>
+                {mood && (
+                  <span className="text-[0.95rem] leading-none" title={`อารมณ์: ${mood.emoji}`}>
+                    {mood.emoji}
+                  </span>
+                )}
               </span>
 
               {dayEvents.length > 0 && (

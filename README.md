@@ -17,6 +17,10 @@
 | 📌 สรุปรายวัน | รวมนัดทั้งหมดของวันที่เลือก เรียงตามเวลา พร้อมนับจำนวน |
 | 🎫 จองตั๋วเดินทาง | ลิงก์จองตั๋ว **เครื่องบิน · รถไฟ · รถทัวร์** แยกเป็นหมวด |
 | 🔑 ล็อกอิน | Supabase Auth แบบอีเมล + รหัสผ่าน |
+| 💗 Mood Tracker | บันทึกอารมณ์รายวันด้วยอีโมจิ 7 แบบ โผล่บนปฏิทินและมุมมองสัปดาห์ |
+| ✅ Habit Tracker | สร้างนิสัยเอง ติ๊กวงกลมให้ระบายสีเมื่อทำสำเร็จ พร้อมตัวนับ |
+| 📌 Sticky Notes | กระดานโพสต์อิทสีพาสเทล เขียน/เปลี่ยนสี/ลบได้ |
+| 🔀 สลับมุมมอง | รายวัน · รายสัปดาห์ · รายเดือน |
 | 💾 สำรองข้อมูล | Export / Import JSON |
 
 ---
@@ -35,7 +39,7 @@ npm install
 
 1. สร้างโปรเจกต์ที่ [supabase.com](https://supabase.com)
 2. เปิด **SQL Editor → New query** วางเนื้อหาไฟล์ [`supabase/schema.sql`](supabase/schema.sql) ทั้งไฟล์แล้วกด **Run**
-   สคริปต์นี้จะสร้างให้ครบ: ตาราง `events` + `attachments`, RLS policy, และ Storage bucket `attachments`
+   สคริปต์นี้จะสร้างให้ครบ: ตาราง `events` `attachments` `moods` `habits` `habit_logs` `notes`, GRANT, RLS policy, และ Storage bucket `attachments`
 
 ### 3. สร้างบัญชีผู้ใช้
 
@@ -87,6 +91,11 @@ components/
   EventForm.tsx     ฟอร์มเพิ่ม–แก้ไขนัดหมาย
   AttachmentPicker.tsx  อัปโหลด/พรีวิว/ลบไฟล์แนบ
   ReminderHost.tsx  ตัวจับเวลาแจ้งเตือน + ป็อบอัปในหน้า
+  MoodPicker.tsx    เลือกอารมณ์ประจำวัน
+  HabitTracker.tsx  นิสัยประจำวัน + วงกลมติ๊ก
+  StickyBoard.tsx   กระดานโพสต์อิท
+  ViewSwitcher.tsx  ปุ่มสลับ รายวัน/สัปดาห์/เดือน
+  WeekView.tsx      มุมมองรายสัปดาห์ 7 คอลัมน์
   BookingLinks.tsx  ลิงก์จองตั๋ว เครื่องบิน/รถไฟ/รถทัวร์
   BackupBar.tsx     Export / Import JSON
 lib/
@@ -101,7 +110,7 @@ lib/
 public/
   flowers.svg     ลายดอกไม้พื้นหลัง (tile ต่อกันได้ไม่มีรอยต่อ)
 supabase/
-  schema.sql      ตาราง + RLS + Storage bucket
+  schema.sql      6 ตาราง + RLS + Storage bucket
 ```
 
 ## ความปลอดภัย

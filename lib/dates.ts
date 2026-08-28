@@ -113,3 +113,30 @@ export function humanCountdown(target: Date, now: Date): string {
   if (hours > 0) return `อีก ${hours} ชม. ${restMins} นาที`
   return `อีก ${restMins} นาที`
 }
+
+/** 7 วันของสัปดาห์ที่วันนั้นอยู่ เริ่มวันอาทิตย์ */
+export function weekOf(dateKey: string): string[] {
+  const d = fromKey(dateKey)
+  const start = new Date(d)
+  start.setDate(d.getDate() - d.getDay())
+  return Array.from({ length: 7 }, (_, i) => {
+    const x = new Date(start)
+    x.setDate(start.getDate() + i)
+    return toKey(x)
+  })
+}
+
+/** ข้อความหัวสัปดาห์ เช่น "31 ส.ค. – 6 ก.ย. 2568" */
+export function formatWeekRange(days: string[]): string {
+  const first = fromKey(days[0])
+  const last = fromKey(days[days.length - 1])
+  return `${shortDate(days[0])} – ${shortDate(days[days.length - 1])} ${
+    first.getFullYear() === last.getFullYear() ? last.getFullYear() + 543 : ''
+  }`.trim()
+}
+
+export const DAY_NAMES_TH = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์']
+
+export function weekdayShort(dateKey: string): string {
+  return WEEKDAYS_TH[fromKey(dateKey).getDay()]
+}

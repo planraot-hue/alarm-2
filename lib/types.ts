@@ -51,3 +51,87 @@ export function newId(): string {
   }
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
 }
+
+/* ============ Mood Tracker ============ */
+
+export interface MoodOption {
+  emoji: string
+  label: string
+  color: string
+}
+
+export const MOODS: MoodOption[] = [
+  { emoji: '😊', label: 'ดีมาก', color: '#FFE8A3' },
+  { emoji: '🥳', label: 'ฟินสุด ๆ', color: '#FFC2D1' },
+  { emoji: '😌', label: 'สงบ ๆ', color: '#C6F1D6' },
+  { emoji: '😴', label: 'ง่วง/เพลีย', color: '#BEE3F8' },
+  { emoji: '😐', label: 'เฉย ๆ', color: '#DCE5E4' },
+  { emoji: '😟', label: 'กังวล', color: '#E2D6FF' },
+  { emoji: '😭', label: 'แย่เลย', color: '#FFD8BE' },
+]
+
+export function getMoodOption(emoji: string): MoodOption | undefined {
+  return MOODS.find((m) => m.emoji === emoji)
+}
+
+export interface Mood {
+  /** 'YYYY-MM-DD' */
+  day: string
+  emoji: string
+  note?: string
+}
+
+/* ============ Habit Tracker ============ */
+
+export type PastelColor = 'pink' | 'sky' | 'mint' | 'lemon' | 'lilac' | 'peach'
+
+export const PASTELS: Record<PastelColor, { bg: string; accent: string }> = {
+  pink: { bg: '#FFC2D1', accent: '#C25A7C' },
+  sky: { bg: '#BEE3F8', accent: '#3E7CA6' },
+  mint: { bg: '#C6F1D6', accent: '#3E8C63' },
+  lemon: { bg: '#FFE8A3', accent: '#B08A20' },
+  lilac: { bg: '#E2D6FF', accent: '#6D55B0' },
+  peach: { bg: '#FFD8BE', accent: '#B36C3C' },
+}
+
+export const PASTEL_KEYS = Object.keys(PASTELS) as PastelColor[]
+
+export function getPastel(color: string) {
+  return PASTELS[color as PastelColor] ?? PASTELS.pink
+}
+
+export interface Habit {
+  id: string
+  name: string
+  icon: string
+  color: PastelColor
+  sortOrder: number
+}
+
+/** ไอเดียนิสัยยอดฮิต ไว้ให้กดเพิ่มเร็ว ๆ ตอนยังไม่มีอะไรเลย */
+export const HABIT_PRESETS: { name: string; icon: string; color: PastelColor }[] = [
+  { name: 'ดื่มน้ำ 8 แก้ว', icon: '💧', color: 'sky' },
+  { name: 'ออกกำลังกาย', icon: '🏃', color: 'mint' },
+  { name: 'อ่านหนังสือ', icon: '📖', color: 'lilac' },
+  { name: 'นอนก่อนเที่ยงคืน', icon: '🌙', color: 'peach' },
+  { name: 'ยืดเส้นยืดสาย', icon: '🧘', color: 'pink' },
+  { name: 'กินผัก', icon: '🥗', color: 'lemon' },
+]
+
+/** คีย์ของ habit log หนึ่งช่อง */
+export function habitLogKey(habitId: string, day: string): string {
+  return `${habitId}:${day}`
+}
+
+/* ============ Sticky Notes ============ */
+
+export interface StickyNote {
+  id: string
+  body: string
+  color: PastelColor
+  sortOrder: number
+}
+
+/* ============ มุมมอง ============ */
+
+export type ViewMode = 'day' | 'week' | 'month'
