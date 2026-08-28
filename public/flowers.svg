@@ -1,84 +1,125 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180">
   <!--
-    ลายดอกไม้พื้นหลังแบบ tile ต่อกันได้ไม่มีรอยต่อ (160x160)
-    ดอกที่อยู่ริมขอบต้องวาดซ้ำอีกฝั่งด้วย ลายถึงจะต่อเนียน
-    สีอ่อนและ opacity ต่ำโดยตั้งใจ ไม่ให้แย่งสายตากับตัวหนังสือ
+    ลายดอกไม้พื้นหลัง tile ต่อกันได้ไม่มีรอยต่อ (180x180)
+
+    หมายเหตุการออกแบบ:
+    - วาดวงกลมตรง ๆ ไม่ใช้ <defs>/<use> เพราะ Safari รุ่นเก่าไม่รองรับ href
+      แบบไม่มี xlink บน <use> ทำให้ลายหายทั้งแผ่น
+    - ดอกที่ล้นขอบต้องวาดคู่แฝดอีกฝั่งด้วย (ดูคอมเมนต์ "คู่แฝด") ลายถึงจะต่อเนียน
+    - กลีบ: วงกลม 5 วง r=7 วางห่างศูนย์กลาง 8 -> ดอกกว้างราว 30px
   -->
-  <defs>
-    <!-- ดอกไม้ 5 กลีบ จุดศูนย์กลางอยู่ที่ (0,0) -->
-    <g id="petals">
-      <circle cx="0" cy="-7" r="5.2"/>
-      <circle cx="6.66" cy="-2.16" r="5.2"/>
-      <circle cx="4.11" cy="5.66" r="5.2"/>
-      <circle cx="-4.11" cy="5.66" r="5.2"/>
-      <circle cx="-6.66" cy="-2.16" r="5.2"/>
-    </g>
-    <!-- ใบไม้เล็ก -->
-    <g id="leaf">
-      <path d="M0 0 C 5 -4, 11 -3, 13 2 C 8 6, 2 5, 0 0 Z"/>
-    </g>
-  </defs>
 
-  <g opacity="0.42">
-    <!-- ดอกชมพู มุมบนซ้าย -->
-    <g transform="translate(26 30)">
-      <use href="#petals" fill="#FFC2D1"/>
-      <circle r="3.1" fill="#FFE8A3"/>
+  <g opacity="0.85">
+
+    <!-- ดอกชมพู บนซ้าย -->
+    <g transform="translate(34 40)">
+      <circle cx="0" cy="-8" r="7" fill="#FFB3C6"/>
+      <circle cx="7.61" cy="-2.47" r="7" fill="#FFB3C6"/>
+      <circle cx="4.70" cy="6.47" r="7" fill="#FFB3C6"/>
+      <circle cx="-4.70" cy="6.47" r="7" fill="#FFB3C6"/>
+      <circle cx="-7.61" cy="-2.47" r="7" fill="#FFB3C6"/>
+      <circle r="3.8" fill="#FFDF8C"/>
     </g>
 
-    <!-- ดอกฟ้า กลางบนขวา -->
-    <g transform="translate(104 20) scale(0.82) rotate(18)">
-      <use href="#petals" fill="#BEE3F8"/>
-      <circle r="3.1" fill="#FFF3C4"/>
+    <!-- ดอกฟ้า บนขวา -->
+    <g transform="translate(122 26) rotate(20) scale(0.85)">
+      <circle cx="0" cy="-8" r="7" fill="#A8D8F0"/>
+      <circle cx="7.61" cy="-2.47" r="7" fill="#A8D8F0"/>
+      <circle cx="4.70" cy="6.47" r="7" fill="#A8D8F0"/>
+      <circle cx="-4.70" cy="6.47" r="7" fill="#A8D8F0"/>
+      <circle cx="-7.61" cy="-2.47" r="7" fill="#A8D8F0"/>
+      <circle r="3.8" fill="#FFDF8C"/>
     </g>
 
     <!-- ดอกม่วง กลาง -->
-    <g transform="translate(70 76) scale(0.95) rotate(-24)">
-      <use href="#petals" fill="#E2D6FF"/>
-      <circle r="3.1" fill="#FFE8A3"/>
+    <g transform="translate(88 96) rotate(-25)">
+      <circle cx="0" cy="-8" r="7" fill="#D4C2FF"/>
+      <circle cx="7.61" cy="-2.47" r="7" fill="#D4C2FF"/>
+      <circle cx="4.70" cy="6.47" r="7" fill="#D4C2FF"/>
+      <circle cx="-4.70" cy="6.47" r="7" fill="#D4C2FF"/>
+      <circle cx="-7.61" cy="-2.47" r="7" fill="#D4C2FF"/>
+      <circle r="3.8" fill="#FFDF8C"/>
     </g>
 
     <!-- ดอกเหลือง ล่างซ้าย -->
-    <g transform="translate(20 118) scale(0.78) rotate(36)">
-      <use href="#petals" fill="#FFE8A3"/>
-      <circle r="3.1" fill="#FFC2D1"/>
+    <g transform="translate(28 134) rotate(35) scale(0.82)">
+      <circle cx="0" cy="-8" r="7" fill="#FFDF8C"/>
+      <circle cx="7.61" cy="-2.47" r="7" fill="#FFDF8C"/>
+      <circle cx="4.70" cy="6.47" r="7" fill="#FFDF8C"/>
+      <circle cx="-4.70" cy="6.47" r="7" fill="#FFDF8C"/>
+      <circle cx="-7.61" cy="-2.47" r="7" fill="#FFDF8C"/>
+      <circle r="3.8" fill="#FFB3C6"/>
     </g>
 
     <!-- ดอกมิ้นต์ ล่างขวา -->
-    <g transform="translate(122 112) scale(0.9) rotate(-12)">
-      <use href="#petals" fill="#C6F1D6"/>
-      <circle r="3.1" fill="#FFE8A3"/>
+    <g transform="translate(146 126) rotate(-15) scale(0.92)">
+      <circle cx="0" cy="-8" r="7" fill="#A9E8C4"/>
+      <circle cx="7.61" cy="-2.47" r="7" fill="#A9E8C4"/>
+      <circle cx="4.70" cy="6.47" r="7" fill="#A9E8C4"/>
+      <circle cx="-4.70" cy="6.47" r="7" fill="#A9E8C4"/>
+      <circle cx="-7.61" cy="-2.47" r="7" fill="#A9E8C4"/>
+      <circle r="3.8" fill="#FFDF8C"/>
     </g>
 
-    <!-- ดอกพีชเล็ก ขวากลาง -->
-    <g transform="translate(140 66) scale(0.62) rotate(48)">
-      <use href="#petals" fill="#FFD8BE"/>
-      <circle r="3.1" fill="#FFF3C4"/>
+    <!-- ดอกพีช ริมขวา (ล้นขอบ) -->
+    <g transform="translate(174 72) rotate(45) scale(0.72)">
+      <circle cx="0" cy="-8" r="7" fill="#FFC79E"/>
+      <circle cx="7.61" cy="-2.47" r="7" fill="#FFC79E"/>
+      <circle cx="4.70" cy="6.47" r="7" fill="#FFC79E"/>
+      <circle cx="-4.70" cy="6.47" r="7" fill="#FFC79E"/>
+      <circle cx="-7.61" cy="-2.47" r="7" fill="#FFC79E"/>
+      <circle r="3.8" fill="#FFDF8C"/>
     </g>
-    <!-- คู่แฝดของดอกบน เพื่อให้ขอบซ้าย-ขวาต่อกันสนิท -->
-    <g transform="translate(-20 66) scale(0.62) rotate(48)">
-      <use href="#petals" fill="#FFD8BE"/>
-      <circle r="3.1" fill="#FFF3C4"/>
+    <!-- คู่แฝดของดอกพีช ริมซ้าย (174 - 180 = -6) -->
+    <g transform="translate(-6 72) rotate(45) scale(0.72)">
+      <circle cx="0" cy="-8" r="7" fill="#FFC79E"/>
+      <circle cx="7.61" cy="-2.47" r="7" fill="#FFC79E"/>
+      <circle cx="4.70" cy="6.47" r="7" fill="#FFC79E"/>
+      <circle cx="-4.70" cy="6.47" r="7" fill="#FFC79E"/>
+      <circle cx="-7.61" cy="-2.47" r="7" fill="#FFC79E"/>
+      <circle r="3.8" fill="#FFDF8C"/>
+    </g>
+
+    <!-- ดอกชมพูเล็ก ริมล่าง (ล้นขอบ) -->
+    <g transform="translate(74 176) rotate(10) scale(0.68)">
+      <circle cx="0" cy="-8" r="7" fill="#FFB3C6"/>
+      <circle cx="7.61" cy="-2.47" r="7" fill="#FFB3C6"/>
+      <circle cx="4.70" cy="6.47" r="7" fill="#FFB3C6"/>
+      <circle cx="-4.70" cy="6.47" r="7" fill="#FFB3C6"/>
+      <circle cx="-7.61" cy="-2.47" r="7" fill="#FFB3C6"/>
+      <circle r="3.8" fill="#FFDF8C"/>
+    </g>
+    <!-- คู่แฝดของดอกบน ริมบน (176 - 180 = -4) -->
+    <g transform="translate(74 -4) rotate(10) scale(0.68)">
+      <circle cx="0" cy="-8" r="7" fill="#FFB3C6"/>
+      <circle cx="7.61" cy="-2.47" r="7" fill="#FFB3C6"/>
+      <circle cx="4.70" cy="6.47" r="7" fill="#FFB3C6"/>
+      <circle cx="-4.70" cy="6.47" r="7" fill="#FFB3C6"/>
+      <circle cx="-7.61" cy="-2.47" r="7" fill="#FFB3C6"/>
+      <circle r="3.8" fill="#FFDF8C"/>
     </g>
 
     <!-- ใบไม้ประดับ -->
-    <g fill="#C6F1D6">
-      <use href="#leaf" transform="translate(48 52) rotate(28) scale(0.9)"/>
-      <use href="#leaf" transform="translate(92 132) rotate(-40) scale(0.8)"/>
-      <use href="#leaf" transform="translate(132 40) rotate(150) scale(0.75)"/>
+    <g fill="#A9E8C4">
+      <path d="M0 0 C 5 -4, 11 -3, 13 2 C 8 6, 2 5, 0 0 Z" transform="translate(56 62) rotate(28) scale(1.05)"/>
+      <path d="M0 0 C 5 -4, 11 -3, 13 2 C 8 6, 2 5, 0 0 Z" transform="translate(104 144) rotate(-40) scale(0.95)"/>
+      <path d="M0 0 C 5 -4, 11 -3, 13 2 C 8 6, 2 5, 0 0 Z" transform="translate(142 46) rotate(150) scale(0.9)"/>
+      <path d="M0 0 C 5 -4, 11 -3, 13 2 C 8 6, 2 5, 0 0 Z" transform="translate(18 84) rotate(-70) scale(0.85)"/>
     </g>
 
     <!-- จุดเล็ก ๆ เติมช่องว่าง -->
-    <g fill="#FFC2D1">
-      <circle cx="58" cy="16" r="2.4"/>
-      <circle cx="146" cy="94" r="2.2"/>
-      <circle cx="8" cy="86" r="2.2"/>
-      <circle cx="86" cy="46" r="1.9"/>
+    <g fill="#FFB3C6">
+      <circle cx="64" cy="18" r="3"/>
+      <circle cx="160" cy="98" r="2.8"/>
+      <circle cx="10" cy="106" r="2.8"/>
+      <circle cx="98" cy="52" r="2.4"/>
     </g>
-    <g fill="#BEE3F8">
-      <circle cx="40" cy="94" r="2.2"/>
-      <circle cx="112" cy="60" r="2"/>
-      <circle cx="66" cy="146" r="2.3"/>
+    <g fill="#A8D8F0">
+      <circle cx="46" cy="106" r="2.8"/>
+      <circle cx="126" cy="66" r="2.6"/>
+      <circle cx="118" cy="160" r="2.9"/>
+      <circle cx="164" cy="16" r="2.5"/>
     </g>
+
   </g>
 </svg>

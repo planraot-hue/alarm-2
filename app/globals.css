@@ -38,7 +38,7 @@ body {
     radial-gradient(circle at 78% 92%, rgba(226, 214, 255, 0.32) 0, transparent 34%),
     radial-gradient(circle at 8% 88%, rgba(198, 241, 214, 0.32) 0, transparent 30%);
   background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
-  background-size: 160px 160px, auto, auto, auto, auto;
+  background-size: 180px 180px, auto, auto, auto, auto;
   background-attachment: fixed;
   color: var(--color-ink);
   font-family: var(--font-hand);
