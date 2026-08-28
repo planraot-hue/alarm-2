@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+  <!--
+    ลายดอกไม้พื้นหลังแบบ tile ต่อกันได้ไม่มีรอยต่อ (160x160)
+    ดอกที่อยู่ริมขอบต้องวาดซ้ำอีกฝั่งด้วย ลายถึงจะต่อเนียน
+    สีอ่อนและ opacity ต่ำโดยตั้งใจ ไม่ให้แย่งสายตากับตัวหนังสือ
+  -->
+  <defs>
+    <!-- ดอกไม้ 5 กลีบ จุดศูนย์กลางอยู่ที่ (0,0) -->
+    <g id="petals">
+      <circle cx="0" cy="-7" r="5.2"/>
+      <circle cx="6.66" cy="-2.16" r="5.2"/>
+      <circle cx="4.11" cy="5.66" r="5.2"/>
+      <circle cx="-4.11" cy="5.66" r="5.2"/>
+      <circle cx="-6.66" cy="-2.16" r="5.2"/>
+    </g>
+    <!-- ใบไม้เล็ก -->
+    <g id="leaf">
+      <path d="M0 0 C 5 -4, 11 -3, 13 2 C 8 6, 2 5, 0 0 Z"/>
+    </g>
+  </defs>
+
+  <g opacity="0.42">
+    <!-- ดอกชมพู มุมบนซ้าย -->
+    <g transform="translate(26 30)">
+      <use href="#petals" fill="#FFC2D1"/>
+      <circle r="3.1" fill="#FFE8A3"/>
+    </g>
+
+    <!-- ดอกฟ้า กลางบนขวา -->
+    <g transform="translate(104 20) scale(0.82) rotate(18)">
+      <use href="#petals" fill="#BEE3F8"/>
+      <circle r="3.1" fill="#FFF3C4"/>
+    </g>
+
+    <!-- ดอกม่วง กลาง -->
+    <g transform="translate(70 76) scale(0.95) rotate(-24)">
+      <use href="#petals" fill="#E2D6FF"/>
+      <circle r="3.1" fill="#FFE8A3"/>
+    </g>
+
+    <!-- ดอกเหลือง ล่างซ้าย -->
+    <g transform="translate(20 118) scale(0.78) rotate(36)">
+      <use href="#petals" fill="#FFE8A3"/>
+      <circle r="3.1" fill="#FFC2D1"/>
+    </g>
+
+    <!-- ดอกมิ้นต์ ล่างขวา -->
+    <g transform="translate(122 112) scale(0.9) rotate(-12)">
+      <use href="#petals" fill="#C6F1D6"/>
+      <circle r="3.1" fill="#FFE8A3"/>
+    </g>
+
+    <!-- ดอกพีชเล็ก ขวากลาง -->
+    <g transform="translate(140 66) scale(0.62) rotate(48)">
+      <use href="#petals" fill="#FFD8BE"/>
+      <circle r="3.1" fill="#FFF3C4"/>
+    </g>
+    <!-- คู่แฝดของดอกบน เพื่อให้ขอบซ้าย-ขวาต่อกันสนิท -->
+    <g transform="translate(-20 66) scale(0.62) rotate(48)">
+      <use href="#petals" fill="#FFD8BE"/>
+      <circle r="3.1" fill="#FFF3C4"/>
+    </g>
+
+    <!-- ใบไม้ประดับ -->
+    <g fill="#C6F1D6">
+      <use href="#leaf" transform="translate(48 52) rotate(28) scale(0.9)"/>
+      <use href="#leaf" transform="translate(92 132) rotate(-40) scale(0.8)"/>
+      <use href="#leaf" transform="translate(132 40) rotate(150) scale(0.75)"/>
+    </g>
+
+    <!-- จุดเล็ก ๆ เติมช่องว่าง -->
+    <g fill="#FFC2D1">
+      <circle cx="58" cy="16" r="2.4"/>
+      <circle cx="146" cy="94" r="2.2"/>
+      <circle cx="8" cy="86" r="2.2"/>
+      <circle cx="86" cy="46" r="1.9"/>
+    </g>
+    <g fill="#BEE3F8">
+      <circle cx="40" cy="94" r="2.2"/>
+      <circle cx="112" cy="60" r="2"/>
+      <circle cx="66" cy="146" r="2.3"/>
+    </g>
+  </g>
+</svg>

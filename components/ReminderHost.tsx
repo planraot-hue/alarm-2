@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { getCategory } from '@/lib/categories'
-import { formatRange } from '@/lib/dates'
+import { eventStartAt, formatRange, humanCountdown } from '@/lib/dates'
 import {
   type DueReminder,
   OFFSET_LABEL,
@@ -15,8 +15,13 @@ import type { AppEvent } from '@/lib/types'
 
 const TICK_MS = 30_000
 
+function mapsUrl(location: string) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`
+}
+
 export default function ReminderHost({ events }: { events: AppEvent[] }) {
-  const [banners, setBanners] = useState<DueReminder[]>([])
+  // คิวแจ้งเตือนที่ยังไม่ได้กดรับทราบ — แสดงทีละอัน อันแรกในคิวคือป็อบอัปที่เห็นอยู่
+  const [queue, setQueue] = useState<DueReminder[]>([])
   const [permission, setPermission] = useState<NotificationPermission>('default')
 
   useEffect(() => {
@@ -34,8 +39,8 @@ export default function ReminderHost({ events }: { events: AppEvent[] }) {
     }
     saveFired([...fired])
 
-    // แบนเนอร์ในหน้าเว็บทำงานเสมอ แม้ผู้ใช้ไม่อนุญาต desktop notification
-    setBanners((prev) => {
+    // ป็อบอัปในหน้าเว็บทำงานเสมอ แม้ผู้ใช้ไม่อนุญาต desktop notification
+    setQueue((prev) => {
       const seen = new Set(prev.map((b) => b.key))
       return [...prev, ...due.filter((d) => !seen.has(d.key))]
     })
@@ -47,59 +52,134 @@ export default function ReminderHost({ events }: { events: AppEvent[] }) {
     return () => window.clearInterval(id)
   }, [check])
 
+  const current = queue[0]
+
+  const dismiss = useCallback(() => setQueue((prev) => prev.slice(1)), [])
+
+  // ปิดด้วยปุ่ม Esc
+  useEffect(() => {
+    if (!current) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') dismiss()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [current, dismiss])
+
   async function askPermission() {
     setPermission(await requestNotificationPermission())
   }
 
-  const showAskButton = permission === 'default' && typeof window !== 'undefined' && 'Notification' in window
-
-  if (banners.length === 0 && !showAskButton) return null
+  const showAskButton =
+    permission === 'default' && typeof window !== 'undefined' && 'Notification' in window
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex flex-col items-center gap-2 p-4">
+    <>
       {showAskButton && (
-        <button
-          onClick={askPermission}
-          className="btn pointer-events-auto text-[0.95rem]"
-          style={{ background: 'var(--color-lemon)', color: 'var(--color-lemon-deep)' }}
-        >
-          🔔 เปิดการแจ้งเตือนบนเครื่อง
-        </button>
+        <div className="fixed inset-x-0 bottom-0 z-30 flex justify-center p-4">
+          <button
+            onClick={askPermission}
+            className="btn text-[0.95rem]"
+            style={{ background: 'var(--color-lemon)', color: 'var(--color-lemon-deep)' }}
+          >
+            🔔 เปิดการแจ้งเตือนบนเครื่อง
+          </button>
+        </div>
       )}
 
-      {banners.map((item) => {
-        const cat = getCategory(item.event.category)
-        return (
-          <div
-            key={item.key}
-            role="alert"
-            className="animate-pop pointer-events-auto flex w-full max-w-md items-start gap-3 rounded-3xl border-l-8 bg-white p-4"
-            style={{ borderColor: cat.accent, boxShadow: '0 10px 30px rgba(74,64,56,0.18)' }}
-          >
-            <span className="animate-wiggle text-3xl" aria-hidden>⏰</span>
-            <div className="min-w-0 flex-1">
-              <p className="font-bold" style={{ color: cat.accent }}>
-                {OFFSET_LABEL[item.offset] ?? 'ใกล้ถึงนัดแล้ว'}
-              </p>
-              <p className="truncate text-lg font-bold">
-                {cat.icon} {item.event.title}
-              </p>
-              <p className="text-[0.9rem]" style={{ color: 'var(--color-ink-soft)' }}>
-                {formatRange(item.event)}
-                {item.event.location ? ` · ${item.event.location}` : ''}
-              </p>
-            </div>
-            <button
-              onClick={() => setBanners((prev) => prev.filter((b) => b.key !== item.key))}
-              aria-label="ปิดการแจ้งเตือน"
-              className="rounded-full px-3 py-1 font-bold"
-              style={{ background: 'var(--color-cream)' }}
-            >
-              ✕
-            </button>
+      {current && <ReminderPopup item={current} remaining={queue.length - 1} onClose={dismiss} />}
+    </>
+  )
+}
+
+function ReminderPopup({
+  item,
+  remaining,
+  onClose,
+}: {
+  item: DueReminder
+  remaining: number
+  onClose: () => void
+}) {
+  const cat = getCategory(item.event.category)
+  const startAt = eventStartAt(item.event)
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4 backdrop-blur-sm"
+      onClick={onClose}
+      role="alertdialog"
+      aria-modal="true"
+      aria-label="แจ้งเตือนนัดหมาย"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="animate-bounce-in w-full max-w-sm overflow-hidden rounded-[2rem] bg-white text-center"
+        style={{ boxShadow: '0 20px 60px rgba(74,64,56,0.28)' }}
+      >
+        {/* แถบสีตามประเภทกิจกรรม */}
+        <div className="px-6 pt-7 pb-5" style={{ background: cat.color }}>
+          <div className="animate-wiggle mb-1 text-6xl" aria-hidden>
+            ⏰
           </div>
-        )
-      })}
+          <p className="text-lg font-bold" style={{ color: cat.accent }}>
+            {OFFSET_LABEL[item.offset] ?? 'ใกล้ถึงนัดแล้ว'}
+          </p>
+        </div>
+
+        <div className="px-6 pt-5 pb-6">
+          <p className="mb-1 text-2xl leading-snug font-bold break-words">
+            {cat.icon} {item.event.title}
+          </p>
+
+          <p className="text-[0.95rem] font-semibold" style={{ color: cat.accent }}>
+            🕒 {formatRange(item.event)}
+          </p>
+
+          <p className="mt-0.5 text-[0.9rem]" style={{ color: 'var(--color-ink-soft)' }}>
+            {humanCountdown(startAt, new Date())}
+          </p>
+
+          {item.event.location && (
+            <p className="mt-3 flex flex-wrap items-center justify-center gap-2 text-[0.95rem]">
+              <span>📍 {item.event.location}</span>
+              <a
+                href={mapsUrl(item.event.location)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full px-3 py-1 text-[0.82rem] font-semibold transition-transform hover:-translate-y-0.5"
+                style={{ background: 'var(--color-sky)', color: 'var(--color-sky-deep)' }}
+              >
+                🗺️ เปิดแผนที่
+              </a>
+            </p>
+          )}
+
+          {item.event.note && (
+            <p
+              className="mt-3 rounded-2xl px-3 py-2 text-left text-[0.9rem] whitespace-pre-wrap"
+              style={{ background: 'var(--color-cream)', color: 'var(--color-ink-soft)' }}
+            >
+              📝 {item.event.note}
+            </p>
+          )}
+
+          <button
+            onClick={onClose}
+            autoFocus
+            className="btn mt-5 w-full text-lg"
+            style={{ background: 'var(--color-pink)', color: 'var(--color-pink-deep)' }}
+          >
+            รับทราบแล้ว 💖
+          </button>
+
+          {remaining > 0 && (
+            <p className="mt-2 text-[0.85rem]" style={{ color: 'var(--color-ink-soft)' }}>
+              ยังมีอีก {remaining} รายการรออยู่
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
