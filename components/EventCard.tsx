@@ -1,6 +1,6 @@
 'use client'
 
-import FlightLinks from './FlightLinks'
+import BookingLinks from './BookingLinks'
 import { downloadAttachment, formatSize } from '@/lib/attachments'
 import { getCategory } from '@/lib/categories'
 import { eventStartAt, formatRange, humanCountdown } from '@/lib/dates'
@@ -98,7 +98,7 @@ export default function EventCard({ event, now, onEdit, onDelete }: Props) {
             </p>
           )}
 
-          {event.category === 'travel' && <FlightLinks compact />}
+          {event.category === 'travel' && <BookingLinks compact />}
         </div>
 
         <div className="flex shrink-0 flex-col gap-1.5">

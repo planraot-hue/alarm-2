@@ -17,7 +17,7 @@ const itim = Itim({
 })
 
 export const metadata: Metadata = {
-  title: 'สมุดนัดน่ารัก 🌸 เตือนนัดสำคัญ',
+  title: 'My Planner 🌸 เตือนนัดสำคัญ',
   description: 'ปฏิทินนัดหมายส่วนตัว พร้อมแจ้งเตือนล่วงหน้า 3 วัน / 1 วัน / 1 ชั่วโมง',
 }
 

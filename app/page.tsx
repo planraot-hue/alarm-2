@@ -8,7 +8,7 @@ import CalendarMonth from '@/components/CalendarMonth'
 import ConfigNotice from '@/components/ConfigNotice'
 import DaySummary from '@/components/DaySummary'
 import EventForm from '@/components/EventForm'
-import FlightLinks from '@/components/FlightLinks'
+import BookingLinks from '@/components/BookingLinks'
 import ReminderHost from '@/components/ReminderHost'
 import { removeStorageFiles } from '@/lib/attachments'
 import { deleteEvent, describeDbError, fetchEvents, upsertEvent } from '@/lib/db'
@@ -171,7 +171,7 @@ export default function Page() {
     <main className="mx-auto max-w-6xl p-4 pb-32 sm:p-6">
       <header className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold sm:text-4xl">🗓️ สมุดนัดน่ารัก</h1>
+          <h1 className="text-3xl font-bold sm:text-4xl">🗓️ My Planner</h1>
           <p className="text-[0.95rem]" style={{ color: 'var(--color-ink-soft)' }}>
             เตือนล่วงหน้า 3 วัน · 1 วัน · 1 ชั่วโมง ก่อนถึงนัด
           </p>
@@ -241,7 +241,7 @@ export default function Page() {
             )}
           </section>
 
-          <FlightLinks />
+          <BookingLinks />
           <BackupBar events={events} onImport={handleImport} />
         </div>
 

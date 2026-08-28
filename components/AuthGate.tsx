@@ -46,7 +46,7 @@ export default function AuthGate() {
       <form onSubmit={submit} className="card animate-pop w-full max-w-md">
         <div className="mb-6 text-center">
           <div className="animate-wiggle mb-2 text-6xl">🗓️</div>
-          <h1 className="text-3xl font-bold">สมุดนัดน่ารัก</h1>
+          <h1 className="text-3xl font-bold">My Planner</h1>
           <p className="mt-1 text-[0.95rem]" style={{ color: 'var(--color-ink-soft)' }}>
             เข้าสู่ระบบเพื่อดูนัดหมายของคุณ
           </p>
