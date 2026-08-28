@@ -11,7 +11,7 @@ import EventForm from '@/components/EventForm'
 import FlightLinks from '@/components/FlightLinks'
 import ReminderHost from '@/components/ReminderHost'
 import { removeStorageFiles } from '@/lib/attachments'
-import { deleteEvent, fetchEvents, upsertEvent } from '@/lib/db'
+import { deleteEvent, describeDbError, fetchEvents, upsertEvent } from '@/lib/db'
 import { eventStartAt, fromKey, todayKey } from '@/lib/dates'
 import { clearFiredFor } from '@/lib/storage'
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
@@ -68,7 +68,7 @@ export default function Page() {
       setEvents(await fetchEvents())
     } catch (err) {
       console.error(err)
-      setDbError('โหลดนัดหมายจาก Supabase ไม่สำเร็จ — เช็คว่ารัน schema.sql แล้วหรือยัง')
+      setDbError(describeDbError(err))
     }
     setLoadingEvents(false)
   }, [])
@@ -117,7 +117,7 @@ export default function Page() {
       await upsertEvent(ev, userId)
     } catch (err) {
       console.error(err)
-      setDbError('บันทึกขึ้น Supabase ไม่สำเร็จ กำลังดึงข้อมูลล่าสุดกลับมา')
+      setDbError(`บันทึกไม่สำเร็จ: ${describeDbError(err)}`)
       await reload()
     }
   }
@@ -135,7 +135,7 @@ export default function Page() {
       await removeStorageFiles(ev.attachments.map((a) => a.storagePath))
     } catch (err) {
       console.error(err)
-      setDbError('ลบไม่สำเร็จ กำลังดึงข้อมูลล่าสุดกลับมา')
+      setDbError(`ลบไม่สำเร็จ: ${describeDbError(err)}`)
       await reload()
     }
   }

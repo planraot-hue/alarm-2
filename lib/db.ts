@@ -145,3 +145,25 @@ export async function deleteEvent(id: string): Promise<void> {
   const { error } = await supabase.from('events').delete().eq('id', id)
   if (error) throw error
 }
+/** แปลง error จาก Supabase เป็นข้อความไทยพร้อมบอกวิธีแก้ตามรหัสที่ได้จริง */
+export function describeDbError(err: unknown): string {
+  const e = err as { message?: string; code?: string; details?: string; hint?: string }
+  const msg = e?.message ?? String(err)
+  const code = e?.code ?? ''
+  const lower = msg.toLowerCase()
+
+  // ยังไม่ได้สร้างตาราง — สาเหตุที่พบบ่อยที่สุด
+  if (code === '42P01' || code === 'PGRST205' || lower.includes('does not exist')) {
+    return `ยังไม่มีตารางในฐานข้อมูล — ให้รัน supabase/schema.sql ใน SQL Editor ก่อน (${code || 'undefined table'}: ${msg})`
+  }
+  if (lower.includes('invalid api key') || lower.includes('jwt')) {
+    return `anon key ไม่ถูกต้อง — เช็คค่า NEXT_PUBLIC_SUPABASE_ANON_KEY ใน .env.local (${msg})`
+  }
+  if (lower.includes('failed to fetch') || lower.includes('networkerror')) {
+    return 'ต่อกับ Supabase ไม่ได้ — เช็คอินเทอร์เน็ตและค่า NEXT_PUBLIC_SUPABASE_URL'
+  }
+  if (code === '42501' || lower.includes('row-level security') || lower.includes('permission denied')) {
+    return `RLS ปฏิเสธคำสั่งนี้ — เช็คว่า policy ถูกสร้างครบตอนรัน schema.sql (${msg})`
+  }
+  return `${msg}${code ? ` (code ${code})` : ''}`
+}

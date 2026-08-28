@@ -73,31 +73,51 @@ create policy "attachments_delete_own" on public.attachments
 -- ============================================================
 --  Storage bucket สำหรับไฟล์แนบ (private)
 --  ไฟล์เก็บที่ path:  {user_id}/{attachment_id}
---  policy เช็คว่าโฟลเดอร์ชั้นแรกตรงกับ uid ของคนที่ล็อกอิน
+--
+--  ห่อด้วย DO block ดักข้อผิดพลาดไว้ เพราะบางโปรเจกต์ไม่ให้สิทธิ์แก้
+--  storage.objects จาก SQL Editor  ถ้าไม่ห่อไว้ ทั้งสคริปต์จะ rollback
+--  ทำให้ตารางด้านบนหายไปด้วยทั้งที่สร้างสำเร็จแล้ว
 -- ============================================================
 
-insert into storage.buckets (id, name, public)
-values ('attachments', 'attachments', false)
-on conflict (id) do nothing;
+do $$
+begin
+  insert into storage.buckets (id, name, public)
+  values ('attachments', 'attachments', false)
+  on conflict (id) do nothing;
+exception when insufficient_privilege or undefined_table then
+  raise notice 'ข้ามการสร้าง bucket — ให้สร้าง bucket ชื่อ attachments (private) เองที่หน้า Storage';
+end $$;
 
-drop policy if exists "attachments_storage_select_own" on storage.objects;
-drop policy if exists "attachments_storage_insert_own" on storage.objects;
-drop policy if exists "attachments_storage_delete_own" on storage.objects;
+do $$
+begin
+  drop policy if exists "attachments_storage_select_own" on storage.objects;
+  drop policy if exists "attachments_storage_insert_own" on storage.objects;
+  drop policy if exists "attachments_storage_delete_own" on storage.objects;
 
-create policy "attachments_storage_select_own" on storage.objects
-  for select using (
-    bucket_id = 'attachments'
-    and (storage.foldername(name))[1] = auth.uid()::text
-  );
+  create policy "attachments_storage_select_own" on storage.objects
+    for select using (
+      bucket_id = 'attachments'
+      and (storage.foldername(name))[1] = auth.uid()::text
+    );
 
-create policy "attachments_storage_insert_own" on storage.objects
-  for insert with check (
-    bucket_id = 'attachments'
-    and (storage.foldername(name))[1] = auth.uid()::text
-  );
+  create policy "attachments_storage_insert_own" on storage.objects
+    for insert with check (
+      bucket_id = 'attachments'
+      and (storage.foldername(name))[1] = auth.uid()::text
+    );
 
-create policy "attachments_storage_delete_own" on storage.objects
-  for delete using (
-    bucket_id = 'attachments'
-    and (storage.foldername(name))[1] = auth.uid()::text
-  );
+  create policy "attachments_storage_delete_own" on storage.objects
+    for delete using (
+      bucket_id = 'attachments'
+      and (storage.foldername(name))[1] = auth.uid()::text
+    );
+exception when insufficient_privilege then
+  raise notice 'ข้ามการสร้าง storage policy — ตั้งเองที่ Storage → attachments → Policies โดยใช้เงื่อนไข (storage.foldername(name))[1] = auth.uid()::text';
+end $$;
+
+-- ============================================================
+--  ตรวจผล — ควรได้ events และ attachments พร้อม rowsecurity = true
+-- ============================================================
+select tablename, rowsecurity
+from pg_tables
+where schemaname = 'public' and tablename in ('events', 'attachments');
