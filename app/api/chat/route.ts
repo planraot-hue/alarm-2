@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { APP_KNOWLEDGE } from '@/lib/aiKnowledge'
-import { type GeminiTurn, askGemini } from '@/lib/gemini'
+import { type GeminiTurn, askGemini, diagnose } from '@/lib/gemini'
 import { CHAT_HISTORY_LIMIT, MAX_CHAT_CHARS } from '@/lib/types'
 
 /**
@@ -77,4 +77,24 @@ export async function POST(req: Request) {
 
   if (!result.ok) return bad(502, result.error ?? 'ถาม Gemini ไม่สำเร็จ')
   return NextResponse.json({ reply: result.reply })
+}
+
+/**
+ * GET /api/chat — ไว้ตรวจว่าคีย์นี้ใช้โมเดลอะไรได้บ้าง
+ * ต้องล็อกอินเหมือนกัน และไม่คืนตัวคีย์ออกไป คืนแค่รายชื่อโมเดล
+ */
+export async function GET(req: Request) {
+  const authHeader = req.headers.get('authorization') ?? ''
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : ''
+  if (!token) return bad(401, 'ต้องเข้าสู่ระบบก่อน')
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!url || !anonKey) return bad(500, 'เซิร์ฟเวอร์ยังไม่ได้ตั้งค่า Supabase')
+
+  const supabase = createClient(url, anonKey)
+  const { data, error } = await supabase.auth.getUser(token)
+  if (error || !data?.user) return bad(401, 'เซสชันหมดอายุ')
+
+  return NextResponse.json(await diagnose())
 }

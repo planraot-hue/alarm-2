@@ -65,8 +65,11 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
 
 ```
 GEMINI_API_KEY=AIza...
-GEMINI_MODEL=gemini-2.5-flash    # ไม่ใส่ก็ได้
+GEMINI_MODEL=gemini-2.5-flash    # ไม่ใส่ก็ได้ ระบบหาให้เอง
 ```
+
+ถ้าโมเดลที่ตั้งไว้ใช้กับคีย์ไม่ได้ ระบบจะ**ถามรายชื่อโมเดลจาก Google แล้วเลือกให้เองอัตโนมัติ**
+ไม่ต้องไปนั่งหาชื่อเอง ถ้าอยากรู้ว่าคีย์ใช้อะไรได้บ้าง เปิด DevTools แล้วดูที่ `GET /api/chat`
 
 > ⚠️ **ห้ามตั้งชื่อเป็น `NEXT_PUBLIC_GEMINI_API_KEY` เด็ดขาด**
 > คีย์นี้เป็นความลับจริง ไม่เหมือน anon key ของ Supabase ที่มี RLS คุมอยู่
