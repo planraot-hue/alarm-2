@@ -21,6 +21,7 @@
 | ✅ Habit Tracker | สร้างนิสัยเอง ติ๊กวงกลมให้ระบายสีเมื่อทำสำเร็จ พร้อมตัวนับ |
 | 📌 Sticky Notes | กระดานโพสต์อิทสีพาสเทล เขียน/เปลี่ยนสี/ลบได้ |
 | 🔀 สลับมุมมอง | รายวัน · รายสัปดาห์ · รายเดือน |
+| 💬 แชตบอต AI | ผู้ช่วย "น้องแพลน" ขับด้วย Gemini รู้ทั้งวิธีใช้เว็บและตารางนัดของคุณ |
 | 💾 สำรองข้อมูล | Export / Import JSON |
 
 ---
@@ -39,7 +40,7 @@ npm install
 
 1. สร้างโปรเจกต์ที่ [supabase.com](https://supabase.com)
 2. เปิด **SQL Editor → New query** วางเนื้อหาไฟล์ [`supabase/schema.sql`](supabase/schema.sql) ทั้งไฟล์แล้วกด **Run**
-   สคริปต์นี้จะสร้างให้ครบ: ตาราง `events` `attachments` `moods` `habits` `habit_logs` `notes`, GRANT, RLS policy, และ Storage bucket `attachments`
+   สคริปต์นี้จะสร้างให้ครบ: ตาราง `events` `attachments` `moods` `habits` `habit_logs` `notes` `chat_messages`, GRANT, RLS policy, และ Storage bucket `attachments`
 
 ### 3. สร้างบัญชีผู้ใช้
 
@@ -58,7 +59,23 @@ NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
 ```
 
-### 5. รัน
+### 5. ใส่คีย์ Gemini (สำหรับแชตบอต)
+
+ขอคีย์ฟรีที่ [Google AI Studio](https://aistudio.google.com/apikey) แล้วใส่ใน `.env.local`
+
+```
+GEMINI_API_KEY=AIza...
+GEMINI_MODEL=gemini-2.5-flash    # ไม่ใส่ก็ได้
+```
+
+> ⚠️ **ห้ามตั้งชื่อเป็น `NEXT_PUBLIC_GEMINI_API_KEY` เด็ดขาด**
+> คีย์นี้เป็นความลับจริง ไม่เหมือน anon key ของ Supabase ที่มี RLS คุมอยู่
+> ถ้ามี `NEXT_PUBLIC_` นำหน้า Next.js จะฝังลง bundle ให้ใครก็หยิบไปใช้จนโควตาหมดได้
+> ในโปรเจกต์นี้คีย์ถูกใช้เฉพาะใน [`app/api/chat/route.ts`](app/api/chat/route.ts) ฝั่งเซิร์ฟเวอร์เท่านั้น
+
+ถ้าไม่ใส่คีย์ ส่วนอื่นของเว็บยังใช้ได้ปกติ แค่แชตจะขึ้นข้อความบอกให้ไปตั้งค่า
+
+### 6. รัน
 
 ```bash
 npm run dev      # เปิด http://localhost:3000
@@ -72,8 +89,10 @@ npm run dev      # เปิด http://localhost:3000
 
 1. push โปรเจกต์นี้ขึ้น GitHub
 2. เข้า [vercel.com](https://vercel.com) → **Add New → Project** → เลือก repo นี้
-3. ใน **Environment Variables** ใส่ `NEXT_PUBLIC_SUPABASE_URL` และ `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+3. ใน **Environment Variables** ใส่ `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` และ `GEMINI_API_KEY`
 4. กด Deploy
+
+หมายเหตุ: การมี `app/api/chat` ทำให้เว็บไม่ได้เป็น static ล้วนอีกต่อไป Vercel จะสร้าง serverless function ให้ (ยังอยู่ในโควตาฟรี)
 
 ## โครงสร้างโปรเจกต์
 
@@ -97,7 +116,10 @@ components/
   ViewSwitcher.tsx  ปุ่มสลับ รายวัน/สัปดาห์/เดือน
   WeekView.tsx      มุมมองรายสัปดาห์ 7 คอลัมน์
   BookingLinks.tsx  ลิงก์จองตั๋ว เครื่องบิน/รถไฟ/รถทัวร์
+  ChatBot.tsx       ปุ่มลอย + หน้าต่างแชตกับผู้ช่วย AI
   BackupBar.tsx     Export / Import JSON
+app/api/chat/
+  route.ts        Route Handler ถือ GEMINI_API_KEY ไว้ฝั่งเซิร์ฟเวอร์
 lib/
   supabase.ts     Supabase client ฝั่งเบราว์เซอร์
   db.ts           อ่าน/เขียนนัดหมายและไฟล์แนบบน Supabase
@@ -107,10 +129,13 @@ lib/
   categories.ts   ประเภทกิจกรรม + ไอคอน + สีพาสเทล
   dates.ts        คำนวณปฏิทิน, ช่วงวันหลายวัน, ฟอร์แมตวันที่ไทย
   reminders.ts    คำนวณว่าถึงเวลาต้องเตือนหรือยัง
+  gemini.ts       เรียก Gemini API + แปลง error เป็นภาษาไทย
+  aiKnowledge.ts  ความรู้เรื่องเว็บที่ส่งให้ AI เป็น system instruction
+  aiContext.ts    สรุปข้อมูลผู้ใช้ส่งให้ AI (จำกัดขนาดไว้)
 public/
   flowers.svg     ลายดอกไม้พื้นหลัง (tile ต่อกันได้ไม่มีรอยต่อ)
 supabase/
-  schema.sql      6 ตาราง + RLS + Storage bucket
+  schema.sql      7 ตาราง + RLS + Storage bucket
 ```
 
 ## ความปลอดภัย
@@ -128,8 +153,12 @@ supabase/
 - **ป็อบอัปเด้งทีละรายการ** ถ้าถึงเวลาพร้อมกันหลายนัด จะเข้าคิวรอ กดรับทราบแล้วอันถัดไปจึงขึ้น
 - **สถานะ "เตือนไปแล้ว" เก็บแยกรายเครื่อง** โดยตั้งใจ ถ้าเก็บรวมบนเซิร์ฟเวอร์ เปิดเว็บอีกเครื่องจะไม่ได้รับเตือนเลย
 - **Import JSON จะไม่พาไฟล์แนบมาด้วย** เพราะตัวไฟล์อยู่ใน Storage ของบัญชีเดิม ระบบจะนำเข้าเฉพาะตัวนัดหมาย
+- **แชตบอตส่งข้อมูลของคุณไปที่ Google** — เพื่อตอบเรื่องตารางนัดได้ ระบบจะสรุปนัดหมาย อารมณ์ นิสัย และโน้ต ส่งไปกับคำถามทุกครั้ง
+  ถ้าไม่ต้องการก็ไม่ต้องใส่ `GEMINI_API_KEY` แชตจะปิดไปเอง
+- **แชตบอตอ่านข้อมูลได้อย่างเดียว** สร้าง แก้ หรือลบนัดหมายให้ไม่ได้ ตั้งใจออกแบบไว้แบบนี้เพื่อกันกรณี AI เข้าใจผิดแล้วไปแก้ข้อมูลจริง
+- **โควตาฟรีของ Gemini มีจำกัดต่อนาที** ถ้าถามรัว ๆ อาจเจอข้อความให้รอสักครู่
 
 ## Tech stack
 
-Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Supabase (Auth + Postgres + Storage)
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Supabase (Auth + Postgres + Storage) · Google Gemini
 ฟอนต์ Mali + Itim จาก Google Fonts (subset ภาษาไทย)

@@ -214,6 +214,37 @@ create policy "notes_delete_own" on public.notes
   for delete using (auth.uid() = user_id);
 
 -- ============================================================
+--  Chat Bot — ประวัติการสนทนากับผู้ช่วย AI
+--  ไม่มี policy update เพราะข้อความที่ส่งไปแล้วไม่มีการแก้
+-- ============================================================
+
+create table if not exists public.chat_messages (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references auth.users (id) on delete cascade,
+  role       text not null check (role in ('user', 'model')),
+  body       text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists chat_messages_user_idx
+  on public.chat_messages (user_id, created_at);
+
+grant select, insert, delete on public.chat_messages to authenticated;
+
+alter table public.chat_messages enable row level security;
+
+drop policy if exists "chat_messages_select_own" on public.chat_messages;
+drop policy if exists "chat_messages_insert_own" on public.chat_messages;
+drop policy if exists "chat_messages_delete_own" on public.chat_messages;
+
+create policy "chat_messages_select_own" on public.chat_messages
+  for select using (auth.uid() = user_id);
+create policy "chat_messages_insert_own" on public.chat_messages
+  for insert with check (auth.uid() = user_id);
+create policy "chat_messages_delete_own" on public.chat_messages
+  for delete using (auth.uid() = user_id);
+
+-- ============================================================
 --  Storage bucket สำหรับไฟล์แนบ (private)
 --  ไฟล์เก็บที่ path:  {user_id}/{attachment_id}
 --
@@ -264,5 +295,5 @@ end $$;
 select tablename, rowsecurity
 from pg_tables
 where schemaname = 'public'
-  and tablename in ('events', 'attachments', 'moods', 'habits', 'habit_logs', 'notes')
+  and tablename in ('events', 'attachments', 'moods', 'habits', 'habit_logs', 'notes', 'chat_messages')
 order by tablename;

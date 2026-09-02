@@ -135,3 +135,19 @@ export interface StickyNote {
 /* ============ มุมมอง ============ */
 
 export type ViewMode = 'day' | 'week' | 'month'
+
+/* ============ Chat Bot ============ */
+
+export interface ChatMessage {
+  id: string
+  /** 'model' คือฝั่ง AI — ใช้ชื่อตามที่ Gemini API กำหนด จะได้ส่งต่อได้เลยไม่ต้องแปลง */
+  role: 'user' | 'model'
+  body: string
+  createdAt: number
+}
+
+/** ความยาวสูงสุดของข้อความที่ผู้ใช้พิมพ์ กันยิง prompt ใหญ่จนโควตาฟรีหมด */
+export const MAX_CHAT_CHARS = 2000
+
+/** จำนวนข้อความย้อนหลังที่ส่งไปให้ AI เป็นบริบท */
+export const CHAT_HISTORY_LIMIT = 12

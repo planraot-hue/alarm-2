@@ -6,6 +6,7 @@ import {
   type Habit,
   type Mood,
   type ReminderOffset,
+  type ChatMessage,
   type StickyNote,
   habitLogKey,
 } from './types'
@@ -331,5 +332,48 @@ export async function upsertNote(note: StickyNote, userId: string): Promise<void
 
 export async function deleteNote(id: string): Promise<void> {
   const { error } = await supabase.from('notes').delete().eq('id', id)
+  if (error) throw error
+}
+
+/* ============================================================
+   Chat Bot — ประวัติการสนทนา
+   ============================================================ */
+
+interface ChatRow {
+  id: string
+  role: string
+  body: string
+  created_at: string
+}
+
+const CHAT_FETCH_LIMIT = 100
+
+export async function fetchChatMessages(): Promise<ChatMessage[]> {
+  const { data, error } = await supabase
+    .from('chat_messages')
+    .select('id, role, body, created_at')
+    .order('created_at', { ascending: true })
+    .limit(CHAT_FETCH_LIMIT)
+  if (error) throw error
+  return ((data ?? []) as ChatRow[]).map((r) => ({
+    id: r.id,
+    role: r.role === 'model' ? 'model' : 'user',
+    body: r.body,
+    createdAt: new Date(r.created_at).getTime(),
+  }))
+}
+
+export async function insertChatMessage(msg: ChatMessage, userId: string): Promise<void> {
+  const { error } = await supabase.from('chat_messages').insert({
+    id: msg.id,
+    user_id: userId,
+    role: msg.role,
+    body: msg.body,
+  })
+  if (error) throw error
+}
+
+export async function clearChatMessages(userId: string): Promise<void> {
+  const { error } = await supabase.from('chat_messages').delete().eq('user_id', userId)
   if (error) throw error
 }

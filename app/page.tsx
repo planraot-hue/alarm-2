@@ -6,6 +6,7 @@ import AuthGate from '@/components/AuthGate'
 import BackupBar from '@/components/BackupBar'
 import BookingLinks from '@/components/BookingLinks'
 import CalendarMonth from '@/components/CalendarMonth'
+import ChatBot from '@/components/ChatBot'
 import ConfigNotice from '@/components/ConfigNotice'
 import DaySummary from '@/components/DaySummary'
 import EventForm from '@/components/EventForm'
@@ -466,6 +467,15 @@ export default function Page() {
       )}
 
       <ReminderHost events={events} />
+
+      <ChatBot
+        userId={userId}
+        events={events}
+        moods={moods}
+        habits={habits}
+        habitLogs={habitLogs}
+        notes={notes}
+      />
     </main>
   )
 }
