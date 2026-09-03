@@ -23,6 +23,7 @@
 | 🔀 สลับมุมมอง | รายวัน · รายสัปดาห์ · รายเดือน |
 | 💬 แชตบอต AI | ผู้ช่วย "น้องแพลน" ขับด้วย Gemini รู้ทั้งวิธีใช้เว็บและตารางนัดของคุณ |
 | 📱 ติดตั้งเป็นแอป (PWA) | ติดตั้งลงหน้าจอโฮมได้ทั้งมือถือและคอม เปิดแบบเต็มจอไม่มีแถบเบราว์เซอร์ |
+| 🔗 พรีวิวตอนแชร์ลิงก์ | ส่งลิงก์ใน LINE/Facebook แล้วขึ้นการ์ดรูปสวย ๆ พร้อมชื่อและคำอธิบาย |
 | 💾 สำรองข้อมูล | Export / Import JSON |
 
 ---
@@ -115,6 +116,21 @@ npm run dev      # เปิด http://localhost:3000
 **เน็ตหลุดจะเป็นยังไง:** ตัวแอปเปิดขึ้นได้แต่ยังต้องต่อเน็ตเพื่อดึงนัดหมายจาก Supabase
 ถ้าไม่มีสัญญาณจะขึ้นหน้า 🌧️ บอกให้ลองใหม่ แทนหน้า error ของเบราว์เซอร์
 
+---
+
+## 🔗 พรีวิวตอนแชร์ลิงก์ใน LINE
+
+ส่งลิงก์ในแชตแล้วจะขึ้นการ์ดพร้อมรูป 1200×630 ชื่อแอป และคำอธิบาย
+รูปสร้างสดจาก [`app/opengraph-image.tsx`](app/opengraph-image.tsx) — แก้ข้อความหรือสีในไฟล์นั้นได้เลย
+
+**ต้อง deploy ขึ้น HTTPS ก่อน** LINE ถึงจะเห็น — บน `localhost` จะไม่ขึ้นรูป เพราะ LINE เข้าถึงเครื่องคุณไม่ได้
+
+โดเมนหาให้อัตโนมัติจาก Vercel ไม่ต้องตั้งค่าอะไร ถ้าใช้โดเมนของตัวเองให้ตั้ง `NEXT_PUBLIC_SITE_URL` เพิ่ม
+
+> ⚠️ **LINE แคชพรีวิวไว้แรงมาก** แก้รูปหรือข้อความแล้วส่งลิงก์เดิมอาจยังเห็นของเก่าเป็นวัน
+> ตอนทดสอบให้เติม query ต่อท้ายให้ต่างกัน เช่น `?v=2` หรือเช็คด้วย
+> [OpenGraph.xyz](https://www.opengraph.xyz/) / [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/)
+
 ## โครงสร้างโปรเจกต์
 
 ```
@@ -124,6 +140,7 @@ app/
   globals.css       ธีมพาสเทล (Tailwind CSS v4)
   manifest.ts       Web App Manifest (เสิร์ฟที่ /manifest.webmanifest)
   api/chat/route.ts Route Handler ถือ GEMINI_API_KEY ไว้ฝั่งเซิร์ฟเวอร์
+  opengraph-image.tsx  รูปพรีวิว 1200x630 ตอนแชร์ลิงก์ (สร้างสดด้วย next/og)
 components/
   AuthGate.tsx      ฟอร์มล็อกอินด้วย Supabase Auth
   ConfigNotice.tsx  หน้าบอกวิธีตั้งค่าเมื่อยังไม่มี env
@@ -159,6 +176,8 @@ public/
   sw.js           service worker — แคชไฟล์ static + หน้า offline
   offline.html    หน้าที่ขึ้นตอนเน็ตหลุด (ไม่พึ่งไฟล์ภายนอกเลย)
   icon-*.png      ไอคอนแอป 192/512/maskable + apple-touch-icon
+assets/
+  Mali-*.ttf      ฟอนต์ไทยสำหรับวาดรูปพรีวิว (ต้องเป็นไฟล์ในโปรเจกต์ ไม่ยิงเน็ตตอน render)
 supabase/
   schema.sql      7 ตาราง + RLS + Storage bucket
 ```
