@@ -22,6 +22,7 @@
 | 📌 Sticky Notes | กระดานโพสต์อิทสีพาสเทล เขียน/เปลี่ยนสี/ลบได้ |
 | 🔀 สลับมุมมอง | รายวัน · รายสัปดาห์ · รายเดือน |
 | 💬 แชตบอต AI | ผู้ช่วย "น้องแพลน" ขับด้วย Gemini รู้ทั้งวิธีใช้เว็บและตารางนัดของคุณ |
+| 📱 ติดตั้งเป็นแอป (PWA) | ติดตั้งลงหน้าจอโฮมได้ทั้งมือถือและคอม เปิดแบบเต็มจอไม่มีแถบเบราว์เซอร์ |
 | 💾 สำรองข้อมูล | Export / Import JSON |
 
 ---
@@ -97,6 +98,23 @@ npm run dev      # เปิด http://localhost:3000
 
 หมายเหตุ: การมี `app/api/chat` ทำให้เว็บไม่ได้เป็น static ล้วนอีกต่อไป Vercel จะสร้าง serverless function ให้ (ยังอยู่ในโควตาฟรี)
 
+---
+
+## 📱 ติดตั้งเป็นแอป (PWA)
+
+เว็บนี้ติดตั้งลงเครื่องได้ เปิดแล้วเต็มจอเหมือนแอปจริง ไม่มีแถบที่อยู่ของเบราว์เซอร์
+
+| อุปกรณ์ | วิธีติดตั้ง |
+|---|---|
+| **Android (Chrome)** | จะมีป้าย "ติดตั้งเป็นแอปไหม?" เด้งขึ้นมาเอง หรือกดเมนู ⋮ → **ติดตั้งแอป** |
+| **Windows / macOS (Chrome, Edge)** | กดไอคอน ⊕ ท้ายช่องที่อยู่ หรือเมนู ⋮ → **ติดตั้ง** |
+| **iPhone / iPad (Safari)** | กดปุ่มแชร์ ⬆️ → **เพิ่มไปยังหน้าจอโฮม** (iOS ไม่มีป้ายเด้งให้ ต้องทำเอง) |
+
+**ต้องเป็น HTTPS เท่านั้น** — บน Vercel ใช้ได้เลย ส่วนตอนพัฒนาใช้ `http://localhost` ได้ (เบราว์เซอร์ยกเว้นให้)
+
+**เน็ตหลุดจะเป็นยังไง:** ตัวแอปเปิดขึ้นได้แต่ยังต้องต่อเน็ตเพื่อดึงนัดหมายจาก Supabase
+ถ้าไม่มีสัญญาณจะขึ้นหน้า 🌧️ บอกให้ลองใหม่ แทนหน้า error ของเบราว์เซอร์
+
 ## โครงสร้างโปรเจกต์
 
 ```
@@ -104,6 +122,8 @@ app/
   layout.tsx        ฟอนต์ Mali + Itim (subset ภาษาไทย), metadata
   page.tsx          หน้าเดียวจบ — session, ปฏิทิน, สรุปรายวัน, ฟอร์ม
   globals.css       ธีมพาสเทล (Tailwind CSS v4)
+  manifest.ts       Web App Manifest (เสิร์ฟที่ /manifest.webmanifest)
+  api/chat/route.ts Route Handler ถือ GEMINI_API_KEY ไว้ฝั่งเซิร์ฟเวอร์
 components/
   AuthGate.tsx      ฟอร์มล็อกอินด้วย Supabase Auth
   ConfigNotice.tsx  หน้าบอกวิธีตั้งค่าเมื่อยังไม่มี env
@@ -120,9 +140,8 @@ components/
   WeekView.tsx      มุมมองรายสัปดาห์ 7 คอลัมน์
   BookingLinks.tsx  ลิงก์จองตั๋ว เครื่องบิน/รถไฟ/รถทัวร์
   ChatBot.tsx       ปุ่มลอย + หน้าต่างแชตกับผู้ช่วย AI
+  PwaInstaller.tsx  ลงทะเบียน service worker + ป้ายชวนติดตั้งแอป
   BackupBar.tsx     Export / Import JSON
-app/api/chat/
-  route.ts        Route Handler ถือ GEMINI_API_KEY ไว้ฝั่งเซิร์ฟเวอร์
 lib/
   supabase.ts     Supabase client ฝั่งเบราว์เซอร์
   db.ts           อ่าน/เขียนนัดหมายและไฟล์แนบบน Supabase
@@ -137,6 +156,9 @@ lib/
   aiContext.ts    สรุปข้อมูลผู้ใช้ส่งให้ AI (จำกัดขนาดไว้)
 public/
   flowers.svg     ลายดอกไม้พื้นหลัง (tile ต่อกันได้ไม่มีรอยต่อ)
+  sw.js           service worker — แคชไฟล์ static + หน้า offline
+  offline.html    หน้าที่ขึ้นตอนเน็ตหลุด (ไม่พึ่งไฟล์ภายนอกเลย)
+  icon-*.png      ไอคอนแอป 192/512/maskable + apple-touch-icon
 supabase/
   schema.sql      7 ตาราง + RLS + Storage bucket
 ```
@@ -163,5 +185,5 @@ supabase/
 
 ## Tech stack
 
-Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Supabase (Auth + Postgres + Storage) · Google Gemini
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Supabase (Auth + Postgres + Storage) · Google Gemini · PWA (manifest + service worker เขียนเอง ไม่ใช้ next-pwa)
 ฟอนต์ Mali + Itim จาก Google Fonts (subset ภาษาไทย)
